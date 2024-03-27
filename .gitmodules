@@ -1,0 +1,3 @@
+[submodule "hackernews_hiring_posts"]
+	path = hackernews_hiring_posts
+	url = https://huggingface.co/datasets/dansbecker/hackernews_hiring_posts
