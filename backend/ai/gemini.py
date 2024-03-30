@@ -1,38 +1,12 @@
 from typing import List
-
 import google.generativeai as genai
-from dotenv import load_dotenv
-import os
 import time
-
+from ai.common import generate_single_prompt, GOOGLE_API_KEY
 from ai.constants import TEST_JOB
 from ai.data import Resume, load_resumes
 
-load_dotenv()
-
-GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
 genai.configure(api_key=GOOGLE_API_KEY)
 MODEL = genai.GenerativeModel('gemini-pro')
-
-BASE_PROMPT = '''You are a recommender, determining which candidates will match the job description.
-Job description: {{job}}
-
-Please recommend the top 3 candidates from the list below. Provide an explanation, focus on their achievements, skills, experience, education, and culture-fit. Show their location.
-
-{{candidates}}
-'''
-
-
-def resume_to_list_item_text(r: Resume, prefix: str = '- ') -> str:
-    return f'{prefix}{r["author"]}:\n----\n{r["text"]}\n----\n'
-
-
-def generate_prompt(job_text: str, resumes: List[Resume]) -> str:
-    prompt = BASE_PROMPT.replace('{{job}}', job_text)
-    resumes_texts = [resume_to_list_item_text(r) for r in resumes]
-    flattened_resumes = '\n'.join(resumes_texts)
-    prompt = prompt.replace('{{candidates}}', flattened_resumes)
-    return prompt
 
 
 def list_models():
@@ -41,18 +15,20 @@ def list_models():
             print(m.name)
 
 
-def find_matching_resumes(job_text: str, resumes: List[Resume] = [], n: int = 10):
+def find_matching_resumes(job_text: str, resumes: List[Resume] = [], n: int = 10) -> (str, str):
     if len(resumes) == 0:
         resumes = load_resumes(n=n, seed=int(time.time()))
-    prompt = generate_prompt(job_text, resumes)
-    print('PROMPT: ', prompt)
+    prompt = generate_single_prompt(job_text, resumes)
     result = MODEL.generate_content(prompt)
-    print('RESPONSE: ', result.text)
+    return '', prompt, result.text
 
 
 def main():
     # list_models()
-    find_matching_resumes(job_text=TEST_JOB, n=100)
+    (system, prompt, response) = find_matching_resumes(job_text=TEST_JOB, n=100)
+    print('SYSTEM: ', system)
+    print('PROMPT: ', prompt)
+    print('RESPONSE: ', response)
 
 
 if __name__ == "__main__":
