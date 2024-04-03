@@ -1,7 +1,8 @@
 from typing import List
 import google.generativeai as genai
 import time
-from ai.common import generate_single_prompt, GOOGLE_API_KEY
+from ai.common import GOOGLE_API_KEY, SYSTEM_PROMPT_BACKGROUND, JOB_DESC_REPLACER, CANDIDATES_REPLACER, \
+    RECOMMEND_INSTRUCTION, resume_to_list_item_text, SYSTEM_PROMPT_REPLACER, make_instruction
 from ai.constants import TEST_JOB
 from ai.data import Resume, load_resumes
 
@@ -15,17 +16,36 @@ def list_models():
             print(m.name)
 
 
-def find_matching_resumes(job_text: str, resumes: List[Resume] = [], n: int = 10) -> (str, str):
-    if len(resumes) == 0:
-        resumes = load_resumes(n=n, seed=int(time.time()))
-    prompt = generate_single_prompt(job_text, resumes)
+SINGLE_PROMPT = f'''{SYSTEM_PROMPT_BACKGROUND}
+
+Job description: {JOB_DESC_REPLACER}
+
+{SYSTEM_PROMPT_REPLACER}
+
+{CANDIDATES_REPLACER}
+'''
+
+
+def generate_single_prompt(job_text: str, resumes: List[Resume], n: int) -> str:
+    prompt = SINGLE_PROMPT.replace(JOB_DESC_REPLACER, job_text)
+    system_prompt = make_instruction(n)
+    prompt = prompt.replace(SYSTEM_PROMPT_REPLACER, system_prompt)
+    resumes_texts = [resume_to_list_item_text(r) for r in resumes]
+    flattened_resumes = '\n'.join(resumes_texts)
+    prompt = prompt.replace(CANDIDATES_REPLACER, flattened_resumes)
+    return prompt
+
+
+def find_matching_resumes(job_text: str, resumes: List[Resume], n: int = 3) -> (str, str, str):
+    prompt = generate_single_prompt(job_text, resumes, n)
     result = MODEL.generate_content(prompt)
     return '', prompt, result.text
 
 
 def main():
     # list_models()
-    (system, prompt, response) = find_matching_resumes(job_text=TEST_JOB, n=100)
+    resumes = load_resumes(n=100, seed=int(time.time()))
+    (system, prompt, response) = find_matching_resumes(job_text=TEST_JOB, resumes=resumes, n=3)
     print('SYSTEM: ', system)
     print('PROMPT: ', prompt)
     print('RESPONSE: ', response)

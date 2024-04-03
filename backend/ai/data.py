@@ -41,16 +41,29 @@ def trim_text_leading_punc(text: str):
 SEEKING_WORK = 'SEEKING WORK'
 SEEKING_FREELANCERS = 'SEEKING FREELANCERS'
 
+freelance_workers = all_data['freelancer'].filter(lambda p: str(p['text']).upper().startswith(SEEKING_WORK)).map(
+    lambda p: Resume(
+        text=trim_text_leading_punc(p['text'][len(SEEKING_WORK):]),
+        author=p['CommentAuthor'],
+        time=datetime.strptime(p['CommentTime'], '%Y-%m-%d %H:%M:%S UTC')
+    )
+)
 
-def load_freelancers_and_tasks(n: int, seed_worker: int = 0, seed_jobs: int = 0):
-    listings = all_data['freelancer']
-    workers = listings.filter(lambda p: str(p['text']).upper().startswith(SEEKING_WORK)).map(
-        lambda p: {'text': trim_text_leading_punc(p['text'][len(SEEKING_WORK):])}
+freelance_jobs = all_data['freelancer'].filter(lambda p: str(p['text']).upper().startswith(SEEKING_FREELANCERS)).map(
+    lambda p: Resume(
+        text=trim_text_leading_punc(p['text'][len(SEEKING_FREELANCERS):]),
+        author=p['CommentAuthor'],
+        time=datetime.strptime(p['CommentTime'], '%Y-%m-%d %H:%M:%S UTC')
     )
-    jobs = listings.filter(lambda p: str(p['text']).upper().startswith(SEEKING_FREELANCERS)).map(
-        lambda p: {'text': trim_text_leading_punc(p['text'][len(SEEKING_FREELANCERS):])}
-    )
-    return workers.shuffle(seed_worker)[:n], jobs.shuffle(seed_jobs)[:n]
+)
+
+
+def load_freelancers_jobs(n: int, seed_jobs: int = 0):
+    return freelance_jobs.shuffle(seed_jobs)[:n]
+
+
+def load_freelancers_workers(n: int, seed_worker: int = 0):
+    return freelance_workers.shuffle(seed_worker)[:n]
 
 
 def load_jobs(n, seed=0):
@@ -70,7 +83,7 @@ def load_resumes(n, seed=0):
 
 
 def main():
-    # (workers, jobs) = load_freelancers_and_tasks(5)
+    # workers = load_freelancers_workers(5)
     # print(workers['text'])
     # print(load_resumes(5))
     print(load_jobs(1))
