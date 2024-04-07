@@ -2,4 +2,3 @@ env
 .env
 example_*
 __pycache__
-db.sqlite3
