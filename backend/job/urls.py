@@ -20,5 +20,6 @@ from job.routes import views as job_api
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('ping/', job_api.ping),
+    path('ping', job_api.ping),
+    path('recommend', job_api.recommend_resume),
 ]

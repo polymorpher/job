@@ -17,6 +17,8 @@ from ai.gemini import find_matching_resumes as gemini_match
 from ai.claude import find_matching_resumes as claude_match
 
 from dotenv import load_dotenv
+import traceback
+import job.settings
 
 load_dotenv()
 
@@ -42,26 +44,36 @@ def ping(request):
 @permission_classes([IsAuthenticated])
 def recommend_resume(request: HttpRequest):
     try:
-        match_request = SimpleCandidateMatchRequest(**request.body)
+        match_request = SimpleCandidateMatchRequest(**json.loads(request.body))
     except ValidationError as e:
         return Response(status=status.HTTP_400_BAD_REQUEST, data={"error": e.errors()})
     resumes: List[Resume] = []
     if match_request.resume_source_id == 'hackernews_want_to_be_hired':
         resumes = load_resumes(n=match_request.nun_random_candidates_sampled, seed=match_request.resume_rng_seed)
     elif match_request.resume_source_id == 'hackernews_freelance_seeking_work':
-        resumes = load_freelancers_workers(n=match_request.nun_random_candidates_sampled,
+        resumes = load_freelancers_workers(n=match_request.num_candidate_requested,
                                            seed=match_request.resume_rng_seed)
     else:
         return Response(status=status.HTTP_400_BAD_REQUEST,
                         data={"error": "invalid resume_source_id", "resume_source_id": match_request.resume_source_id})
 
-    if match_request.preferred_model == 'gemini':
-        (system, instruction, response) = gemini_match(job_text=match_request.job_description, resumes=resumes,
-                                                       n=match_request.nun_random_candidates_sampled)
-    else:
-        (system, instruction, response) = claude_match(job_text=match_request.job_description, resumes=resumes,
-                                                       n=match_request.nun_random_candidates_sampled,
-                                                       model=match_request.preferred_model)
+    try:
+        if match_request.preferred_model == 'gemini':
+            (system, instruction, response) = gemini_match(job_text=match_request.job_description, resumes=resumes,
+                                                           n=match_request.nun_random_candidates_sampled)
+        else:
+            (system, instruction, response) = claude_match(job_text=match_request.job_description, resumes=resumes,
+                                                           n=match_request.nun_random_candidates_sampled,
+                                                           model=match_request.preferred_model)
+    except Exception as e:
+        details = str(e) if job.settings.DEBUG else ''
+        trace = traceback.format_exc() if job.settings.DEBUG else ''
+        print(f'EXCEPTION:', str(e))
+        traceback.print_exc()
+
+        return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        data={"error": "Error executing model. Please contact support.", "details": details,
+                              "trace": trace})
 
     print(f'REQUEST: {match_request}')
     print(f'SYSTEM: {system}')
