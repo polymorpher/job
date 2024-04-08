@@ -29,7 +29,7 @@ class SimpleCandidateMatchRequest(BaseModel):
     job_description: str
     resume_source_id: str = 'hackernews_want_to_be_hired'
     resume_rng_seed: int = 0
-    nun_random_candidates_sampled: int = 500
+    nun_random_candidates_sampled: int = 200
     num_candidate_requested: int = 3
     preferred_model: str = default_model
 
@@ -51,7 +51,7 @@ def recommend_resume(request: HttpRequest):
     if match_request.resume_source_id == 'hackernews_want_to_be_hired':
         resumes = load_resumes(n=match_request.nun_random_candidates_sampled, seed=match_request.resume_rng_seed)
     elif match_request.resume_source_id == 'hackernews_freelance_seeking_work':
-        resumes = load_freelancers_workers(n=match_request.num_candidate_requested,
+        resumes = load_freelancers_workers(n=match_request.nun_random_candidates_sampled,
                                            seed=match_request.resume_rng_seed)
     else:
         return Response(status=status.HTTP_400_BAD_REQUEST,
@@ -60,10 +60,10 @@ def recommend_resume(request: HttpRequest):
     try:
         if match_request.preferred_model == 'gemini':
             (system, instruction, response) = gemini_match(job_text=match_request.job_description, resumes=resumes,
-                                                           n=match_request.nun_random_candidates_sampled)
+                                                           n=match_request.num_candidate_requested)
         else:
             (system, instruction, response) = claude_match(job_text=match_request.job_description, resumes=resumes,
-                                                           n=match_request.nun_random_candidates_sampled,
+                                                           n=match_request.num_candidate_requested,
                                                            model=match_request.preferred_model)
     except Exception as e:
         details = str(e) if job.settings.DEBUG else ''
