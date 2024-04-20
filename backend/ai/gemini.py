@@ -7,8 +7,13 @@ from ai.constants import TEST_JOB
 from ai.data import Resume, load_resumes
 
 genai.configure(api_key=GOOGLE_API_KEY)
-MODEL = genai.GenerativeModel('gemini-pro')
+MODEL_LOOKUP = {
+    "gemini-1.0": "gemini-1.0-pro-latest",
+    "gemini-1.5": "gemini-1.5-pro-latest",
+    "gemini": "gemini-1.5-pro-latest",
+}
 
+DEFAULT_MODEL = gemini
 
 def list_models():
     for m in genai.list_models():
@@ -36,9 +41,14 @@ def generate_single_prompt(job_text: str, resumes: List[Resume], n: int) -> str:
     return prompt
 
 
-def find_matching_resumes(job_text: str, resumes: List[Resume], n: int = 3) -> (str, str, str):
+def find_matching_resumes(job_text: str, resumes: List[Resume], n: int = 3, model=DEFAULT_MODEL) -> (str, str, str):
+    if model in MODEL_LOOKUP:
+        model = MODEL_LOOKUP[model]
+    else:
+        model = MODEL_LOOKUP[DEFAULT_MODEL]
     prompt = generate_single_prompt(job_text, resumes, n)
-    result = MODEL.generate_content(prompt)
+    gen_model = genai.GenerativeModel(model)
+    result = gen_model.generate_content(prompt)
     return '', prompt, result.text
 
 
