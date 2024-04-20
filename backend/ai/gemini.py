@@ -13,7 +13,8 @@ MODEL_LOOKUP = {
     "gemini": "gemini-1.5-pro-latest",
 }
 
-DEFAULT_MODEL = gemini
+DEFAULT_MODEL = 'gemini'
+
 
 def list_models():
     for m in genai.list_models():
