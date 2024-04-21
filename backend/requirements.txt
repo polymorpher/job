@@ -2,7 +2,6 @@ anthropic~=0.25.6
 datasets~=2.18.0
 Django~=5.0.3
 djangorestframework~=3.15.1
-protobuf~=5.26.1
 pydantic~=2.7.0
 python-dotenv~=1.0.1
 Requests~=2.31.0
