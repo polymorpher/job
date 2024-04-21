@@ -32,7 +32,7 @@ ALLOWED_HOSTS = ['.localhost', '127.0.0.1', '[::1]', 'job-ai.hiddenstate.xyz', '
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 # SECURE_SSL_REDIRECT = True
-SECURE_SSL_REDIRECT = False
+SECURE_SSL_REDIRECT = os.getenv('SSL_ENABLED') == '1'  or str(os.getenv('SSL_ENABLED')).lower() == 'true'
 APPEND_SLASH = False
 
 # Application definition
