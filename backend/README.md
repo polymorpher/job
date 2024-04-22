@@ -1,11 +1,20 @@
 Working directory: `/backend`
 
+See below for execution settings. You may also use .env for environment variables
+
 ### Development
 
-- Change `SECURE_SSL_REDIRECT` to `False`
-- `python manage.py runserver`
+```
+export SSL_ENABLED=0
+export USE_LOCAL_DB=1
+python manage.py runserver
+```
+
 
 ### Production
 
-- Change `SECURE_SSL_REDIRECT` to `True`
-- `python manage.py runsslserver`
+```
+export SSL_ENABLED=1
+export USE_LOCAL_DB=0
+python manage.py runserver
+```

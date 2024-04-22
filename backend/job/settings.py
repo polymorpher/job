@@ -25,15 +25,22 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-d=!yhggzw$xs=62u3b8x-eyz&zdpvgbq+$x7p@h8ov(t45^lyk'
 
+
+def parse_bool(var_name: str) -> bool:
+    return os.getenv(var_name) == '1' or str(os.getenv(var_name)).lower() == 'true'
+
+
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG') == '1' or str(os.getenv('DEBUG')).lower() == 'true'
+DEBUG = parse_bool('DEBUG')
 
 ALLOWED_HOSTS = ['.localhost', '127.0.0.1', '[::1]', 'job-ai.hiddenstate.xyz', 'dev.hiddenstate.xyz']
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 # SECURE_SSL_REDIRECT = True
-SECURE_SSL_REDIRECT = os.getenv('SSL_ENABLED') == '1'  or str(os.getenv('SSL_ENABLED')).lower() == 'true'
+SECURE_SSL_REDIRECT = parse_bool('SSL_ENABLED')
 APPEND_SLASH = False
+
+USE_LOCAL_DB = parse_bool('USE_LOCAL_DB')
 
 # Application definition
 
@@ -81,11 +88,22 @@ WSGI_APPLICATION = 'job.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+LOCAL_DB_SETTING = {
+    'ENGINE': 'django.db.backends.sqlite3',
+    'NAME': BASE_DIR / 'db.sqlite3',
+}
+
+POSTGRES_SETTING = {
+    "ENGINE": "django.db.backends.postgresql",
+    "NAME": os.getenv('POSTGRES_DB_NAME'),
+    "USER": os.getenv('POSTGRES_DB_USER'),
+    "PASSWORD": os.getenv('POSTGRES_DB_PASSWORD'),
+    "HOST": os.getenv('POSTGRES_DB_HOST'),
+    "PORT": int(os.getenv('POSTGRES_DB_PORT') or '5432'),
+}
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': LOCAL_DB_SETTING if USE_LOCAL_DB else POSTGRES_SETTING
 }
 
 # Password validation
