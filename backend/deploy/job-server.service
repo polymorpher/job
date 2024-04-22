@@ -1,0 +1,14 @@
+[Unit]
+Description=Job Server Service
+After=network.target
+
+[Service]
+Environment=
+Type=simple
+User=worker
+WorkingDirectory=/opt/job/backend
+ExecStart=./run.sh
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
