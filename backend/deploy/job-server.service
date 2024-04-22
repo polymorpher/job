@@ -3,7 +3,7 @@ Description=Job Server Service
 After=network.target
 
 [Service]
-Environment=
+Environment=PORT=80 HTTPS_PORT=443
 Type=simple
 User=worker
 WorkingDirectory=/opt/job/backend
