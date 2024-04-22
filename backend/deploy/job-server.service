@@ -7,7 +7,7 @@ Environment=PORT=80 HTTPS_PORT=443
 Type=simple
 User=worker
 WorkingDirectory=/opt/job/backend
-ExecStart=./run.sh
+ExecStart=bash run.sh
 Restart=on-failure
 
 [Install]
