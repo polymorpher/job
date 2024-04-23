@@ -3,11 +3,11 @@ Description=Job Server Service
 After=network.target
 
 [Service]
-Environment=PORT=80
+Environment=HTTPS_PORT=443
 Type=simple
 User=worker
 WorkingDirectory=/opt/job/backend
-ExecStart=bash run-http.sh
+ExecStart=bash run.sh
 Restart=on-failure
 
 [Install]
