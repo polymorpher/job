@@ -44,7 +44,27 @@ TODO
 
 #### With nginx
 
-Use `./run-http.sh`
+Use `./run-http.sh`. A systemctl configuration is already provided under `./deploy`. Install it using `enable.sh` with working directory changed to `./deploy`.
+
+Note that you need to serve static content via nginx. To do so, you need to collect static files and copy them to nginx' content folder. A script is provided in `./static.sh` assuming the static content will be served at `/var/www/html/static`.
+
+Consult nginx documentations for how HTTPS should be set up. The server configuration should proxy all non-static requests to Django server, as established by `run-http.sh`.
+
+Here is an example snippet for server configuration:
+
+```
+location /static {
+        autoindex on;
+        alias /var/www/html/static;
+}
+
+location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+```
+
 
 #### Without nginx (not recommended)
 
@@ -52,7 +72,7 @@ First, make sure `certs/https.crt` and `certs/https.key` are soft-linked to appr
 
 Then, make sure `python` binary can access lower ports (such as using `libcap2-bin`) if you intend to use production ports (443). 
 
-Then, use `./run.sh`
+Then, use `./run.sh`. Note that you need to serve static content separately using some other ways
 
 ### User management
 
